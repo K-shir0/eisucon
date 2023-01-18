@@ -1,8 +1,13 @@
 package echo
 
-import "github.com/labstack/echo/v4"
+import (
+	"github.com/jmoiron/sqlx"
+	"github.com/labstack/echo/v4"
+)
 
-type Server struct{}
+type Server struct {
+	db *sqlx.DB
+}
 
 var indent = "	"
 
