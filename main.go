@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"os"
 	"prc_hub_back/application/eisucon"
 	"prc_hub_back/application/event"
@@ -66,23 +65,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// init mysql
-	db, err := sqlx.Open("mysql", getDsn())
-
 	// Init application services
 	user.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
 	event.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
+	eisucon.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB, *eisuconMigrationFile)
 
 	// Migrate seed data
-	err = eisucon.Migrate(db)
+	err := eisucon.Migrate()
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
 	}
 
-	echo.Start(db, *port, *issuer, *secret, []string{"*"})
-}
-
-func getDsn() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", *mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
+	echo.Start(*port, *issuer, *secret, []string{"*"})
 }

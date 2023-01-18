@@ -8,8 +8,8 @@ import (
 )
 
 // (POST /reset)
-func (s *Server) PostReset(ctx echo.Context) error {
-	err := eisucon.Migrate(s.db)
+func (*Server) PostReset(ctx echo.Context) error {
+	err := eisucon.Migrate()
 	if err != nil {
 		return JSONMessage(ctx, http.StatusInternalServerError, err.Error())
 	}
