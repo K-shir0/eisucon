@@ -1,4 +1,4 @@
-FROM golang:1.18-alpine as dev
+FROM golang:1.19-alpine as dev
 
 ENV ROOT=/go/src/app
 ENV CGO_ENABLED 0
@@ -12,7 +12,7 @@ EXPOSE ${PORT}
 ENTRYPOINT ["go", "run", "."]
 
 
-FROM golang:1.18-alpine as builder
+FROM golang:1.19-alpine as builder
 
 ENV ROOT=/go/src/app
 WORKDIR ${ROOT}
