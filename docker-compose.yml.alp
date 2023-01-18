@@ -43,6 +43,8 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     restart: unless-stopped
+    networks:
+          - proxy
 
 volumes:
   mysql_data:
