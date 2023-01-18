@@ -47,6 +47,9 @@ func Start(port uint, jwtIssuer string, jwtSecret string, allowOrigins []string)
 		},
 	)
 
+	// Gzip
+	e.Use(middleware.Gzip())
+
 	// handlerの登録
 	var server *Server
 
