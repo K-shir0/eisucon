@@ -35,6 +35,8 @@ var (
 )
 
 func main() {
+	fmt.Println("test")
+
 	logger.Init(logrus.New(logrus.Param{
 		RepeatCaller: func() *bool { var b = true; return &b }(),
 		Formatter: &logruss.TextFormatter{
