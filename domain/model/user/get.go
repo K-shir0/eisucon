@@ -1,5 +1,10 @@
 package user
 
+import (
+	"context"
+	"prc_hub_back/domain/model/sqlc"
+)
+
 func Get(id int64) (User, error) {
 	// MySQLサーバーに接続
 	db, err := OpenMysql()
@@ -9,67 +14,28 @@ func Get(id int64) (User, error) {
 	// return時にMySQLサーバーとの接続を閉じる
 	defer db.Close()
 
-	// `users`テーブルから`id`が一致する行を取得し、変数`e`に代入する
-	r, err := db.Query("SELECT * FROM users WHERE id = ?", id)
-	if err != nil {
-		return User{}, err
-	}
-	defer r.Close()
-	if !r.Next() {
-		// 1行もレコードが無い場合
-		// not found
-		err = ErrUserNotFound
-		return User{}, err
-	}
+	queries := sqlc.New(db)
 
-	// 一時変数に割り当て
-	var (
-		id2                 int64
-		name                string
-		email               string
-		password            string
-		postEventAvailabled bool
-		manage              bool
-		admin               bool
-		twitterId           *string
-		githubUsername      *string
+	u, err := queries.GetUser(
+		context.Background(),
+		sqlc.GetUserParams{SetEmail: "%"},
 	)
-	err = r.Scan(
-		&id2, &name, &email, &password, &postEventAvailabled,
-		&manage, &admin, &twitterId, &githubUsername,
-	)
-	if err != nil {
-		return User{}, err
+
+	// user
+	user := User{
+		Id:                  int64(u.ID),
+		Name:                u.Name,
+		Email:               u.Email,
+		Password:            u.Password,
+		PostEventAvailabled: u.PostEventAvailabled,
+		Manage:              u.Manage,
+		Admin:               u.Admin,
+		TwitterId:           &u.TwitterID.String,
+		GithubUsername:      &u.GithubUsername.String,
+		StarCount:           uint64(u.StarCount),
 	}
 
-	// スター数を取得
-	var count uint64 = 0
-	r2, err := db.Query("SELECT COUNT(*) FROM user_stars WHERE target_user_id = ?", id)
-	if err != nil {
-		return User{}, err
-	}
-	defer r2.Close()
-	if !r2.Next() {
-		return User{}, ErrConflictUserStars
-	}
-	err = r2.Scan(&count)
-	if err != nil {
-		return User{}, err
-	}
-
-	u := User{
-		Id:                  id,
-		Name:                name,
-		Email:               email,
-		Password:            password,
-		StarCount:           count,
-		PostEventAvailabled: postEventAvailabled,
-		Manage:              manage,
-		Admin:               admin,
-		TwitterId:           twitterId,
-		GithubUsername:      githubUsername,
-	}
-	return u, nil
+	return user, nil
 }
 
 func GetByEmail(email string) (User, error) {
@@ -81,67 +47,26 @@ func GetByEmail(email string) (User, error) {
 	// return時にMySQLサーバーとの接続を閉じる
 	defer db.Close()
 
-	// `users`テーブルから`id`が一致する行を取得し、変数`e`に代入する
-	r, err := db.Query(
-		"SELECT * FROM users WHERE email = ?",
-		email,
+	queries := sqlc.New(db)
+
+	u, err := queries.GetUser(
+		context.Background(),
+		sqlc.GetUserParams{SetEmail: email},
 	)
-	if err != nil {
-		return User{}, err
-	}
-	defer r.Close()
-	if !r.Next() {
-		// 1行もレコードが無い場合
-		// not found
-		return User{}, ErrUserNotFound
+
+	// user
+	user := User{
+		Id:                  int64(u.ID),
+		Name:                u.Name,
+		Email:               u.Email,
+		Password:            u.Password,
+		PostEventAvailabled: u.PostEventAvailabled,
+		Manage:              u.Manage,
+		Admin:               u.Admin,
+		TwitterId:           &u.TwitterID.String,
+		GithubUsername:      &u.GithubUsername.String,
+		StarCount:           uint64(u.StarCount),
 	}
 
-	// 一時変数に割り当て
-	var (
-		id                  int64
-		name                string
-		email2              string
-		password            string
-		postEventAvailabled bool
-		manage              bool
-		admin               bool
-		twitterId           *string
-		githubUsername      *string
-	)
-	err = r.Scan(
-		&id, &name, &email2, &password, &postEventAvailabled,
-		&manage, &admin, &twitterId, &githubUsername,
-	)
-	if err != nil {
-		return User{}, err
-	}
-
-	// スター数を取得
-	var count uint64 = 0
-	r2, err := db.Query("SELECT COUNT(*) FROM user_stars WHERE target_user_id = ?", id)
-	if err != nil {
-		return User{}, err
-	}
-	defer r2.Close()
-	if !r2.Next() {
-		return User{}, ErrConflictUserStars
-	}
-	err = r2.Scan(&count)
-	if err != nil {
-		return User{}, err
-	}
-
-	u := User{
-		Id:                  id,
-		Name:                name,
-		Email:               email,
-		Password:            password,
-		StarCount:           count,
-		PostEventAvailabled: postEventAvailabled,
-		Manage:              manage,
-		Admin:               admin,
-		TwitterId:           twitterId,
-		GithubUsername:      githubUsername,
-	}
-	return u, nil
+	return user, nil
 }

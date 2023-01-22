@@ -1,3 +1,23 @@
+-- name: GetUser :one
+SELECT u.id,
+       u.name,
+       u.email,
+       u.password,
+       u.post_event_availabled,
+       u.manage,
+       u.admin,
+       u.twitter_id,
+       u.github_username,
+       COUNT(s.target_user_id) AS star_count
+FROM users u
+         LEFT JOIN user_stars s ON u.id = s.target_user_id
+GROUP BY u.id
+HAVING u.email LIKE CASE
+                        WHEN sqlc.arg(set_email) != '%'
+                            THEN sqlc.arg(set_email)
+                        ELSE u.email
+    END;
+
 -- name: ListEvents :many
 SELECT events.id,
        events.name,
@@ -43,7 +63,7 @@ HAVING events.name LIKE CASE
                                 ELSE events.location
     END
    AND events.published = CASE
-                                WHEN sqlc.arg(not_set_published) = false
-                                    THEN sqlc.arg(set_published)
-                                ELSE events.published
+                              WHEN sqlc.arg(not_set_published) = false
+                                  THEN sqlc.arg(set_published)
+                              ELSE events.published
     END;

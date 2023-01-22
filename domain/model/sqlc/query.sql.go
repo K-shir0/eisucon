@@ -11,6 +11,62 @@ import (
 	"time"
 )
 
+const getUser = `-- name: GetUser :one
+SELECT u.id,
+       u.name,
+       u.email,
+       u.password,
+       u.post_event_availabled,
+       u.manage,
+       u.admin,
+       u.twitter_id,
+       u.github_username,
+       COUNT(s.target_user_id) AS star_count
+FROM users u
+         LEFT JOIN user_stars s ON u.id = s.target_user_id
+GROUP BY u.id
+HAVING u.email LIKE CASE
+                        WHEN ? != '%'
+                            THEN ?
+                        ELSE u.email
+    END
+`
+
+type GetUserParams struct {
+	SetEmail string
+}
+
+type GetUserRow struct {
+	ID                  int32
+	Name                string
+	Email               string
+	Password            string
+	PostEventAvailabled bool
+	Manage              bool
+	Admin               bool
+	TwitterID           sql.NullString
+	GithubUsername      sql.NullString
+	StarCount           int64
+}
+
+func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, error) {
+	row := q.db.QueryRowContext(ctx, getUser, arg.SetEmail, arg.SetEmail)
+	var i GetUserRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Password,
+		&i.PostEventAvailabled,
+		&i.Manage,
+		&i.Admin,
+		&i.TwitterID,
+		&i.GithubUsername,
+		&i.StarCount,
+	)
+	return i, err
+}
+
 const listEvents = `-- name: ListEvents :many
 SELECT events.id,
        events.name,
@@ -56,9 +112,9 @@ HAVING events.name LIKE CASE
                                 ELSE events.location
     END
    AND events.published = CASE
-                                WHEN ? = false
-                                    THEN ?
-                                ELSE events.published
+                              WHEN ? = false
+                                  THEN ?
+                              ELSE events.published
     END
 `
 
