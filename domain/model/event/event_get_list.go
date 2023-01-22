@@ -189,9 +189,9 @@ func GetEventList(q GetEventListQueryParam, requestUser user.User) ([]EventEmbed
 	}
 
 	var prevEventId = eventsRows[0].ID
-	var events = make([]EventEmbed, 550)
+	var events []EventEmbed
 	var event *EventEmbed
-	var documents = make([]EventDocument, 20)
+	var documents []EventDocument
 
 	for _, row := range eventsRows {
 		if event == nil {
@@ -201,7 +201,7 @@ func GetEventList(q GetEventListQueryParam, requestUser user.User) ([]EventEmbed
 					Name:        row.Name,
 					Description: &row.Description.String,
 					Location:    &row.Location.String,
-					Datetimes:   make([]EventDatetime, 5),
+					Datetimes:   []EventDatetime{},
 					Published:   row.Published,
 					Completed:   row.Completed,
 					UserId:      int64(row.UserID),
