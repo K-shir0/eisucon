@@ -22,3 +22,10 @@ func OpenMysql() (*sqlx.DB, error) {
 	}
 	return sqlx.Open("mysql", dsn)
 }
+
+func OpenSqlC() (*sqlx.DB, error) {
+	if dsn == "" {
+		return nil, errors.New("dsn does not set")
+	}
+	return sqlx.Open("mysql", dsn)
+}

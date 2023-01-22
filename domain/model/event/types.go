@@ -10,7 +10,7 @@ type Event struct {
 	Name        string          `json:"name"`
 	Description *string         `json:"description,omitempty"`
 	Location    *string         `json:"location,omitempty"`
-	Datetimes   []EventDatetime `json:"datetimes"`
+	Datetimes   []EventDatetime `db:"event_datetimes" json:"datetimes"`
 	Published   bool            `json:"published"`
 	Completed   bool            `json:"completed"`
 	UserId      int64           `json:"user_id"`
@@ -29,7 +29,7 @@ type EventDocument struct {
 }
 
 type EventEmbed struct {
-	Event
-	User      *user.User       `json:"user,omitempty"`
-	Documents *[]EventDocument `json:"documents,omitempty"`
+	Event     `db:"events"`
+	User      *user.User       `db:"users" json:"user,omitempty"`
+	Documents *[]EventDocument `db:"documents" json:"documents,omitempty"`
 }
