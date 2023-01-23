@@ -1,11 +1,12 @@
 package main
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	"os"
 	"os/signal"
+	"prc_hub_back/application/eisucon"
 	"prc_hub_back/domain/model/logger"
 	"prc_hub_back/domain/model/logrus"
 	"prc_hub_back/presentation/echo"
@@ -14,10 +15,7 @@ import (
 
 	logruss "github.com/sirupsen/logrus"
 
-	_ "embed"
 	"github.com/spf13/pflag"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 // flags (コマンドライン引数)
@@ -37,12 +35,6 @@ var (
 
 	eisuconMigrationFile = pflag.String("migrate-sql-file", "./domain/model/eisucon/migrate.sql", "sql file for migrate with 'POST /reset'")
 )
-
-//go:embed domain/model/sqlc/schema.sql
-var schema string
-
-//go:embed domain/model/eisucon/migrate.sql
-var migrate string
 
 func main() {
 	logger.Init(logrus.New(logrus.Param{
@@ -87,27 +79,15 @@ func main() {
 	//db.SetConnMaxLifetime(time.Minute * 2)
 	db.SetConnMaxIdleTime(time.Minute * 2)
 
-	_, err = db.ExecContext(context.Background(), schema)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return
-	}
-
-	_, err = db.ExecContext(context.Background(), migrate)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return
-	}
-
 	// Init application services
-	//eisucon.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB, *eisuconMigrationFile)
-	//
-	//// Migrate seed data
-	//err = eisucon.Migrate()
-	//if err != nil {
-	//	fmt.Printf("err: %v\n", err)
-	//	return
-	//}
+	eisucon.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB, *eisuconMigrationFile)
+
+	// Migrate seed data
+	err = eisucon.Migrate()
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return
+	}
 
 	echo.Start(*port, *issuer, *secret, []string{"*"}, db)
 
@@ -122,5 +102,10 @@ func main() {
 }
 
 func InitDB(user string, password string, host string, port uint, db string) (*sqlx.DB, error) {
-	return sqlx.Open("sqlite3", ":memory:")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", user, password, host, port, db)
+
+	if dsn == "" {
+		return nil, errors.New("dsn does not set")
+	}
+	return sqlx.Open("mysql", dsn)
 }
