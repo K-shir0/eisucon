@@ -43,8 +43,6 @@ func GetList(db *sqlx.DB, q GetUserListQueryParam) ([]User, error) {
 		queryParams = append(queryParams, "%"+*q.NameContain+"%")
 	}
 
-	//panic(query)
-
 	// 不要な末尾の句を切り取り
 	query = strings.TrimSuffix(query, " HAVING")
 	query = strings.TrimSuffix(query, " AND")
