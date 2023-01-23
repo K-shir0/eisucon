@@ -102,7 +102,7 @@ func main() {
 }
 
 func InitDB(user string, password string, host string, port uint, db string) (*sqlx.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", user, password, host, port, db)
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&interpolateParams=true", user, password, host, port, db)
 
 	if dsn == "" {
 		return nil, errors.New("dsn does not set")
