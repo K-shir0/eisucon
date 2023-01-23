@@ -15,7 +15,7 @@ type GetUserListQueryParam struct {
 
 func GetList(db *sqlx.DB, q GetUserListQueryParam) ([]User, error) {
 	// クエリを作成
-	query := "SELECT u.id, u.name, u.email, u.password, u.post_event_availabled, u.manage, u.admin, u.twitter_id, u.github_username, COUNT(s.target_user_id) AS star_count FROM users u LEFT JOIN user_stars s ON u.id = s.target_user_id  GROUP BY u.id HAVING"
+	query := "SELECT u.id, u.name, u.email, u.password, u.post_event_availabled, u.manage, u.admin, u.twitter_id, u.github_username, COUNT(s.target_user_id) AS star_count FROM users u LEFT JOIN user_stars s ON u.id = s.target_user_id  WHERE"
 	queryParams := []interface{}{}
 	if q.PostEventAvailabled != nil {
 		// 権限で絞り込み
@@ -44,8 +44,9 @@ func GetList(db *sqlx.DB, q GetUserListQueryParam) ([]User, error) {
 	}
 
 	// 不要な末尾の句を切り取り
-	query = strings.TrimSuffix(query, " HAVING")
+	query = strings.TrimSuffix(query, " WHERE")
 	query = strings.TrimSuffix(query, " AND")
+	query += " GROUP BY u.id"
 
 	// `users`テーブルからを取得
 	r, err := db.Query(query, queryParams...)
