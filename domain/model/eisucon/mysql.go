@@ -1,7 +1,6 @@
 package eisucon
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -17,8 +16,8 @@ func Init(user string, password string, host string, port uint, db string) {
 
 // MySQLサーバーに接続
 func OpenMysql() (*sqlx.DB, error) {
-	if dsn == "" {
-		return nil, errors.New("dsn does not set")
-	}
+	//if dsn == "" {
+	//	return nil, errors.New("dsn does not set")
+	//}
 	return sqlx.Open("sqlite3", ":memory:")
 }

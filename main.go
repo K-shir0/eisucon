@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"os"
 	"os/signal"
+	"prc_hub_back/application/eisucon"
 	"prc_hub_back/domain/model/logger"
 	"prc_hub_back/domain/model/logrus"
 	"prc_hub_back/presentation/echo"
@@ -93,14 +94,14 @@ func main() {
 		return
 	}
 
-	_, err = db.ExecContext(context.Background(), migrate)
-	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		return
-	}
+	//_, err = db.ExecContext(context.Background(), migrate)
+	//if err != nil {
+	//	fmt.Printf("err: %v\n", err)
+	//	return
+	//}
 
 	// Init application services
-	//eisucon.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB, *eisuconMigrationFile)
+	eisucon.Init(db, migrate)
 	//
 	//// Migrate seed data
 	//err = eisucon.Migrate()
