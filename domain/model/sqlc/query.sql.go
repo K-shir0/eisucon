@@ -24,9 +24,9 @@ SELECT events.id,
        event_datetimes.end
 FROM events
          JOIN event_datetimes ON events.id = event_datetimes.event_id
+WHERE events.id = ?
 GROUP BY events.id, events.name, events.description, events.location, events.published, events.completed,
          events.user_id, event_datetimes.event_id, event_datetimes.start, event_datetimes.end
-HAVING events.id = ?
 `
 
 type GetEventRow struct {
@@ -94,10 +94,10 @@ SELECT events.id,
 FROM events
          JOIN event_datetimes ON events.id = event_datetimes.event_id
          JOIN documents ON events.id = documents.event_id
+WHERE events.id = ?
 GROUP BY events.id, events.name, events.description, events.location, events.published, events.completed,
          events.user_id, event_datetimes.event_id, event_datetimes.start, event_datetimes.end, documents.id,
          documents.event_id, documents.name, documents.url
-HAVING events.id = ?
 `
 
 type GetEventWithDocumentsRow struct {
@@ -180,11 +180,11 @@ FROM events
          JOIN event_datetimes ON events.id = event_datetimes.event_id
          JOIN users ON events.user_id = users.id
          LEFT JOIN user_stars ON users.id = user_stars.target_user_id
+WHERE events.id = ?
 GROUP BY events.id, events.name, events.description, events.location, events.published, events.completed,
          events.user_id, event_datetimes.event_id, event_datetimes.start, event_datetimes.end, users.id, users.name,
          users.email, users.password, users.post_event_availabled, users.manage, users.admin, users.twitter_id,
          users.github_username
-HAVING events.id = ?
 `
 
 type GetEventWithUserRow struct {
@@ -284,11 +284,11 @@ FROM events
          JOIN documents ON events.id = documents.event_id
          JOIN users ON events.user_id = users.id
          LEFT JOIN user_stars ON users.id = user_stars.target_user_id
+WHERE events.id = ?
 GROUP BY events.id, events.name, events.description, events.location, events.published, events.completed,
          events.user_id, event_datetimes.event_id, event_datetimes.start, event_datetimes.end, documents.id,
          documents.event_id, documents.name, documents.url, users.id, users.name, users.email, users.password,
          users.post_event_availabled, users.manage, users.admin, users.twitter_id, users.github_username
-HAVING events.id = ?
 `
 
 type GetEventWithUserAndDocumentsRow struct {
