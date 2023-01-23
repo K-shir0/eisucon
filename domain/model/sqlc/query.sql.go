@@ -379,12 +379,12 @@ SELECT u.id,
        COUNT(s.target_user_id) AS star_count
 FROM users u
          LEFT JOIN user_stars s ON u.id = s.target_user_id
-GROUP BY u.id
-HAVING u.email LIKE CASE
-                        WHEN ? != '%'
-                            THEN ?
-                        ELSE u.email
+WHERE u.email LIKE CASE
+                       WHEN ? != '%'
+                           THEN ?
+                       ELSE u.email
     END
+GROUP BY u.id
 `
 
 type GetUserParams struct {

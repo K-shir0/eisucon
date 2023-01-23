@@ -11,12 +11,12 @@ SELECT u.id,
        COUNT(s.target_user_id) AS star_count
 FROM users u
          LEFT JOIN user_stars s ON u.id = s.target_user_id
-GROUP BY u.id
-HAVING u.email LIKE CASE
-                        WHEN sqlc.arg(set_email) != '%'
-                            THEN sqlc.arg(set_email)
-                        ELSE u.email
-    END;
+WHERE u.email LIKE CASE
+                       WHEN sqlc.arg(set_email) != '%'
+                           THEN sqlc.arg(set_email)
+                       ELSE u.email
+    END
+GROUP BY u.id;
 
 -- name: GetEventWithUserAndDocuments :many
 SELECT events.id,
