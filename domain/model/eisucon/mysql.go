@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Singleton field
@@ -20,5 +20,5 @@ func OpenMysql() (*sqlx.DB, error) {
 	if dsn == "" {
 		return nil, errors.New("dsn does not set")
 	}
-	return sqlx.Open("mysql", dsn)
+	return sqlx.Open("sqlite3", ":memory:")
 }

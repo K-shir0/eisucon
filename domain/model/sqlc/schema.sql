@@ -1,5 +1,5 @@
 CREATE TABLE `users` (
-                         `id` int(255) UNSIGNED AUTO_INCREMENT NOT NULL,
+                         `id` int(255) NOT NULL,
                          `name` varchar(255) NOT NULL,
                          `email` varchar(255) NOT NULL UNIQUE,
                          `password` varchar(255) NOT NULL,
@@ -15,8 +15,8 @@ CREATE TABLE `users` (
 -- Table structure for table `user_stars`
 --
 CREATE TABLE `user_stars` (
-                              `id` int(255) UNSIGNED AUTO_INCREMENT NOT NULL,
-                              `target_user_id` int(255) UNSIGNED NOT NULL,
+                              `id` int(255) NOT NULL,
+                              `target_user_id` int(255)  NOT NULL,
                               PRIMARY KEY (`id`)
 );
 
@@ -24,13 +24,13 @@ CREATE TABLE `user_stars` (
 -- Table structure for table `events`
 --
 CREATE TABLE `events` (
-                          `id` int(255) UNSIGNED AUTO_INCREMENT NOT NULL,
+                          `id` int(255) NOT NULL,
                           `name` varchar(255) NOT NULL,
                           `description` varchar(255),
                           `location` varchar(255),
                           `published` tinyint(1) NOT NULL,
                           `completed` tinyint(1) NOT NULL,
-                          `user_id` int(255) UNSIGNED NOT NULL,
+                          `user_id` int(255)  NOT NULL,
                           PRIMARY KEY (`id`)
 );
 
@@ -38,7 +38,7 @@ CREATE TABLE `events` (
 -- Table structure for table `event_datetimes`
 --
 CREATE TABLE `event_datetimes` (
-                                   `event_id` int(255) UNSIGNED NOT NULL,
+                                   `event_id` int(255)  NOT NULL,
                                    `start` datetime NOT NULL,
                                    `end` datetime NOT NULL,
                                    FOREIGN KEY (`event_id`) REFERENCES events(`id`) ON DELETE CASCADE
@@ -48,8 +48,8 @@ CREATE TABLE `event_datetimes` (
 -- Table structure for table `documents`
 --
 CREATE TABLE `documents` (
-                             `id` int(255) UNSIGNED AUTO_INCREMENT NOT NULL,
-                             `event_id` int(255) UNSIGNED NOT NULL,
+                             `id` int(255) NOT NULL,
+                             `event_id` int(255) NOT NULL,
                              `name` varchar(255) NOT NULL,
                              `url` varchar(255) NOT NULL,
                              PRIMARY KEY (`id`),
