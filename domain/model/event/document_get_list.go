@@ -1,6 +1,9 @@
 package event
 
-import "strings"
+import (
+	"github.com/jmoiron/sqlx"
+	"strings"
+)
 
 type GetDocumentQueryParam struct {
 	EventId     *int64  `query:"event_id"`
@@ -8,15 +11,7 @@ type GetDocumentQueryParam struct {
 	NameContain *string `query:"name_contain"`
 }
 
-func GetDocumentList(q GetDocumentQueryParam) ([]EventDocument, error) {
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return nil, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
-
+func GetDocumentList(db *sqlx.DB, q GetDocumentQueryParam) ([]EventDocument, error) {
 	// クエリを作成
 	query := "SELECT * FROM documents WHERE"
 	queryParams := []interface{}{}

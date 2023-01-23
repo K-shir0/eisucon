@@ -2,6 +2,7 @@ package event
 
 import (
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/user"
 )
 
@@ -10,9 +11,10 @@ var (
 	ErrCannotDeleteEvent = errors.New("sorry, you cannot delete this event")
 )
 
-func DeleteEvent(id int64, requestUser user.User) error {
+func DeleteEvent(db *sqlx.DB, id int64, requestUser user.User) error {
 	// Get event
 	e, err := GetEvent(
+		db,
 		id,
 		GetEventQueryParam{},
 		requestUser,
@@ -26,14 +28,6 @@ func DeleteEvent(id int64, requestUser user.User) error {
 		// Admin権限なし 且つ `Event.UserId`が自分ではない場合は削除不可
 		return ErrCannotDeleteEvent
 	}
-
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
 
 	// `id`が一致する行を`events`テーブルから削除
 	r2, err := db.Exec(

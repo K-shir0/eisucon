@@ -2,6 +2,7 @@ package event
 
 import (
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/user"
 	"strings"
 )
@@ -16,7 +17,7 @@ type UpdateEventDocumentParam struct {
 	Url  *string `json:"url"`
 }
 
-func (p UpdateEventDocumentParam) validate(id int64, requestUser user.User) error {
+func (p UpdateEventDocumentParam) validate(db *sqlx.DB, id int64, requestUser user.User) error {
 	/**
 	 * フィールドの検証
 	**/
@@ -40,13 +41,13 @@ func (p UpdateEventDocumentParam) validate(id int64, requestUser user.User) erro
 
 	// 権限の検証
 	if !requestUser.Admin && !requestUser.Manage {
-		ed, err := GetDocument(id, requestUser)
+		ed, err := GetDocument(db, id, requestUser)
 		if err != nil {
 			return err
 		}
 
 		// Eventを取得
-		e, err := GetEvent(ed.EventId, GetEventQueryParam{}, requestUser)
+		e, err := GetEvent(db, ed.EventId, GetEventQueryParam{}, requestUser)
 		if err != nil {
 			return err
 		}
@@ -61,26 +62,18 @@ func (p UpdateEventDocumentParam) validate(id int64, requestUser user.User) erro
 	return nil
 }
 
-func UpdateEventDocument(id int64, p UpdateEventDocumentParam, requestUser user.User) (EventDocument, error) {
+func UpdateEventDocument(db *sqlx.DB, id int64, p UpdateEventDocumentParam, requestUser user.User) (EventDocument, error) {
 	// `documents`テーブルから`id`が一致する行を確認
-	_, err := GetDocument(id, requestUser)
+	_, err := GetDocument(db, id, requestUser)
 	if err != nil {
 		return EventDocument{}, err
 	}
 
 	// バリデーション
-	err = p.validate(id, requestUser)
+	err = p.validate(db, id, requestUser)
 	if err != nil {
 		return EventDocument{}, err
 	}
-
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return EventDocument{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
 
 	// クエリを作成
 	query := "UPDATE documents SET"
@@ -119,7 +112,7 @@ func UpdateEventDocument(id int64, p UpdateEventDocumentParam, requestUser user.
 	}
 
 	// 更新後のデータを取得
-	ed, err := GetDocument(id, requestUser)
+	ed, err := GetDocument(db, id, requestUser)
 	if err != nil {
 		return EventDocument{}, err
 	}

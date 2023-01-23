@@ -9,7 +9,7 @@ import (
 )
 
 // (GET /events)
-func (*Server) GetEvents(ctx echo.Context) error {
+func (s *Server) GetEvents(ctx echo.Context) error {
 	// Get jwt claim
 	var jwtId *int64
 	jcc, err := jwt.Check(ctx)
@@ -39,7 +39,7 @@ func (*Server) GetEvents(ctx echo.Context) error {
 	query.LocationContain = queryTmp.LocationContain
 
 	// Get events
-	events, err := event.GetEventList(*query, jwtId)
+	events, err := event.GetEventList(*query, s.db, jwtId)
 	if err != nil {
 		return JSONMessage(ctx, event.ErrToCode(err), err.Error())
 	}

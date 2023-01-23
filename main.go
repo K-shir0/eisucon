@@ -1,14 +1,18 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	"os"
+	"os/signal"
 	"prc_hub_back/application/eisucon"
 	"prc_hub_back/application/event"
 	"prc_hub_back/application/user"
 	"prc_hub_back/domain/model/logger"
 	"prc_hub_back/domain/model/logrus"
 	"prc_hub_back/presentation/echo"
+	"syscall"
 	"time"
 
 	logruss "github.com/sirupsen/logrus"
@@ -35,8 +39,6 @@ var (
 )
 
 func main() {
-	fmt.Println("test")
-
 	logger.Init(logrus.New(logrus.Param{
 		RepeatCaller: func() *bool { var b = true; return &b }(),
 		Formatter: &logruss.TextFormatter{
@@ -67,17 +69,41 @@ func main() {
 		os.Exit(1)
 	}
 
+	db, err := InitDB(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return
+	}
+
 	// Init application services
 	user.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
 	event.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
 	eisucon.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB, *eisuconMigrationFile)
 
 	// Migrate seed data
-	err := eisucon.Migrate()
+	err = eisucon.Migrate()
 	if err != nil {
 		fmt.Printf("err: %v\n", err)
 		return
 	}
 
-	echo.Start(*port, *issuer, *secret, []string{"*"})
+	echo.Start(*port, *issuer, *secret, []string{"*"}, db)
+
+	// シグナル受信時の処理
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGINT)
+
+	<-quit
+
+	fmt.Println("signal received, quitting...")
+	db.Close()
+}
+
+func InitDB(user string, password string, host string, port uint, db string) (*sqlx.DB, error) {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true", user, password, host, port, db)
+
+	if dsn == "" {
+		return nil, errors.New("dsn does not set")
+	}
+	return sqlx.Open("mysql", dsn)
 }

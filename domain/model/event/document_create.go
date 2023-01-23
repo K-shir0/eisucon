@@ -2,6 +2,7 @@ package event
 
 import (
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/user"
 )
 
@@ -16,7 +17,7 @@ type CreateEventDocumentParam struct {
 	Url     string `json:"url"`
 }
 
-func (p CreateEventDocumentParam) validate(requestUser user.User) error {
+func (p CreateEventDocumentParam) validate(db *sqlx.DB, requestUser user.User) error {
 	// フィールドの検証
 	err := validateDocumentName(p.Name)
 	if err != nil {
@@ -26,7 +27,7 @@ func (p CreateEventDocumentParam) validate(requestUser user.User) error {
 	if err != nil {
 		return err
 	}
-	err = validateEventId(p.EventId, requestUser)
+	err = validateEventId(db, p.EventId, requestUser)
 	if err != nil {
 		return err
 	}
@@ -34,7 +35,7 @@ func (p CreateEventDocumentParam) validate(requestUser user.User) error {
 	// 権限の検証
 	if !requestUser.Admin && !requestUser.Manage {
 		// Eventを取得
-		e, err := GetEvent(p.EventId, GetEventQueryParam{}, requestUser)
+		e, err := GetEvent(db, p.EventId, GetEventQueryParam{}, requestUser)
 		if err != nil {
 			return err
 		}
@@ -48,19 +49,11 @@ func (p CreateEventDocumentParam) validate(requestUser user.User) error {
 	return nil
 }
 
-func CreateEventDocument(p CreateEventDocumentParam, requestUser user.User) (EventDocument, error) {
-	err := p.validate(requestUser)
+func CreateEventDocument(db *sqlx.DB, p CreateEventDocumentParam, requestUser user.User) (EventDocument, error) {
+	err := p.validate(db, requestUser)
 	if err != nil {
 		return EventDocument{}, err
 	}
-
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return EventDocument{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
 
 	// `documents`テーブルに追加
 	r, err := db.Exec(

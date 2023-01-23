@@ -11,7 +11,7 @@ import (
 )
 
 // (GET /events/{id}/documents)
-func (*Server) GetEventsIdDocuments(ctx echo.Context) error {
+func (s *Server) GetEventsIdDocuments(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.Check(ctx)
 	if err != nil {
@@ -31,11 +31,13 @@ func (*Server) GetEventsIdDocuments(ctx echo.Context) error {
 	}
 
 	// Get documents
-	documents, err := event.GetDocumentList(event.GetDocumentQueryParam{
-		EventId:     &id,
-		Name:        q.Name,
-		NameContain: q.NameContain,
-	}, jcc.Id)
+	documents, err := event.GetDocumentList(
+		s.db,
+		event.GetDocumentQueryParam{
+			EventId:     &id,
+			Name:        q.Name,
+			NameContain: q.NameContain,
+		}, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, event.ErrToCode(err), err.Error())
 	}

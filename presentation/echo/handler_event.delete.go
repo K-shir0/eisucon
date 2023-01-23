@@ -11,7 +11,7 @@ import (
 )
 
 // (DELETE /events/{id})
-func (*Server) DeleteEventsId(ctx echo.Context) error {
+func (s *Server) DeleteEventsId(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.CheckProvided(ctx)
 	if err != nil {
@@ -26,7 +26,7 @@ func (*Server) DeleteEventsId(ctx echo.Context) error {
 	}
 
 	// Delete event
-	err = event.DeleteEvent(id, jcc.Id)
+	err = event.DeleteEvent(s.db, id, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, event.ErrToCode(err), err.Error())
 	}

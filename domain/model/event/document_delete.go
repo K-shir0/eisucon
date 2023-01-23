@@ -2,6 +2,7 @@ package event
 
 import (
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/user"
 )
 
@@ -10,15 +11,15 @@ var (
 	ErrCannotDeleteEventDocument = errors.New("sorry, you cannot delete this document")
 )
 
-func DeleteEventDocument(id int64, requestUser user.User) error {
+func DeleteEventDocument(db *sqlx.DB, id int64, requestUser user.User) error {
 	// Get document
-	ed, err := GetDocument(id, requestUser)
+	ed, err := GetDocument(db, id, requestUser)
 	if err != nil {
 		return err
 	}
 
 	// Get event
-	e, err := GetEvent(ed.EventId, GetEventQueryParam{}, requestUser)
+	e, err := GetEvent(db, ed.EventId, GetEventQueryParam{}, requestUser)
 	if err != nil {
 		return err
 	}
@@ -29,14 +30,6 @@ func DeleteEventDocument(id int64, requestUser user.User) error {
 		// Admin権限なし 且つ `Event.UserId`が自分ではない場合は削除不可
 		return ErrCannotDeleteEventDocument
 	}
-
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
 
 	// `id`が一致する行を`documents`テーブルから削除
 	r2, err := db.Exec(

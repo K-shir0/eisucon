@@ -11,7 +11,7 @@ import (
 )
 
 // (DELETE /events/{id}/documents/{document_id})
-func (*Server) DeleteEventsIdDocumentsDocumentId(ctx echo.Context) error {
+func (s *Server) DeleteEventsIdDocumentsDocumentId(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.CheckProvided(ctx)
 	if err != nil {
@@ -32,7 +32,7 @@ func (*Server) DeleteEventsIdDocumentsDocumentId(ctx echo.Context) error {
 	}
 
 	// Delete document
-	err = event.DeleteDocument(documentId, jcc.Id)
+	err = event.DeleteDocument(s.db, documentId, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, event.ErrToCode(err), err.Error())
 	}

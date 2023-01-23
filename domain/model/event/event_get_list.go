@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"database/sql"
+	"github.com/jmoiron/sqlx"
 	"github.com/samber/lo"
 	"prc_hub_back/domain/model/sqlc"
 	"prc_hub_back/domain/model/user"
@@ -17,15 +18,7 @@ type GetEventListQueryParam struct {
 	Embed           *[]string `query:"embed"`
 }
 
-func GetEventList(q GetEventListQueryParam, requestUser user.User) ([]EventEmbed, error) {
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return nil, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
-
+func GetEventList(db *sqlx.DB, q GetEventListQueryParam, requestUser user.User) ([]EventEmbed, error) {
 	queries := sqlc.New(db)
 
 	embedUser := false
@@ -78,6 +71,9 @@ func GetEventList(q GetEventListQueryParam, requestUser user.User) ([]EventEmbed
 		NotSetPublished: setNotPublished,
 		SetPublished:    published,
 	})
+	if err != nil {
+		return nil, err
+	}
 	if len(eventsRows) == 0 {
 		return nil, nil
 	}

@@ -1,6 +1,7 @@
 package event
 
 import (
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/user"
 	"time"
 )
@@ -9,16 +10,7 @@ type GetEventQueryParam struct {
 	Embed *[]string `query:"embed"`
 }
 
-func GetEvent(id int64, q GetEventQueryParam, requestUser user.User) (EventEmbed, error) {
-	// Get event
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return EventEmbed{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
-
+func GetEvent(db *sqlx.DB, id int64, q GetEventQueryParam, requestUser user.User) (EventEmbed, error) {
 	embedUser := false
 	embedDocuments := false
 	if q.Embed != nil {
@@ -104,7 +96,7 @@ func GetEvent(id int64, q GetEventQueryParam, requestUser user.User) (EventEmbed
 
 	if embedDocuments {
 		// `Documents`を取得
-		ed, err := GetDocumentList(GetDocumentQueryParam{EventId: &id})
+		ed, err := GetDocumentList(db, GetDocumentQueryParam{EventId: &id})
 		if err != nil {
 			return EventEmbed{}, err
 		}

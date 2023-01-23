@@ -9,7 +9,7 @@ import (
 )
 
 // (POST /events)
-func (*Server) PostEvents(ctx echo.Context) error {
+func (s *Server) PostEvents(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.CheckProvided(ctx)
 	if err != nil {
@@ -23,7 +23,7 @@ func (*Server) PostEvents(ctx echo.Context) error {
 	}
 
 	// Create event
-	ed, err := event.CreateEvent(*body, jcc.Id)
+	ed, err := event.CreateEvent(s.db, *body, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, event.ErrToCode(err), err.Error())
 	}

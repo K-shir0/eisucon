@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/user"
 	"prc_hub_back/domain/model/util"
 	"strings"
@@ -23,7 +24,7 @@ type UpdateEventParam struct {
 	Completed   *bool                       `json:"completed,omitempty"`
 }
 
-func (p UpdateEventParam) validate(id int64, requestUser user.User) error {
+func (p UpdateEventParam) validate(db *sqlx.DB, id int64, requestUser user.User) error {
 	/**
 	 * フィールドの検証
 	**/
@@ -58,7 +59,7 @@ func (p UpdateEventParam) validate(id int64, requestUser user.User) error {
 	// 権限の検証
 	if !requestUser.Admin && !requestUser.Manage {
 		// Eventを取得
-		e, err := GetEvent(id, GetEventQueryParam{}, requestUser)
+		e, err := GetEvent(db, id, GetEventQueryParam{}, requestUser)
 		if err != nil {
 			return err
 		}
@@ -72,20 +73,12 @@ func (p UpdateEventParam) validate(id int64, requestUser user.User) error {
 	return nil
 }
 
-func UpdateEvent(id int64, p UpdateEventParam, requestUser user.User) (Event, error) {
+func UpdateEvent(db *sqlx.DB, id int64, p UpdateEventParam, requestUser user.User) (Event, error) {
 	// バリデーション
-	err := p.validate(id, requestUser)
+	err := p.validate(db, id, requestUser)
 	if err != nil {
 		return Event{}, err
 	}
-
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return Event{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
 
 	// トランザクション開始
 	tx, err := db.BeginTxx(context.Background(), &sql.TxOptions{})
@@ -190,7 +183,7 @@ func UpdateEvent(id int64, p UpdateEventParam, requestUser user.User) (Event, er
 	}
 
 	// 更新後のデータを取得
-	ee, err := GetEvent(id, GetEventQueryParam{}, requestUser)
+	ee, err := GetEvent(db, id, GetEventQueryParam{}, requestUser)
 	if err != nil {
 		return Event{}, err
 	}

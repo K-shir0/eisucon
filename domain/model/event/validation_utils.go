@@ -2,6 +2,7 @@ package event
 
 import (
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/user"
 	"time"
 )
@@ -39,17 +40,9 @@ func validateUrl(url string) error {
 	return nil
 }
 
-func validateEventId(id int64, requestUser user.User) error {
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
-
+func validateEventId(db *sqlx.DB, id int64, requestUser user.User) error {
 	// `documents`テーブルから`id`が一致する行を確認
-	_, err = GetDocument(id, requestUser)
+	_, err := GetDocument(db, id, requestUser)
 	if err != nil {
 		return err
 	}

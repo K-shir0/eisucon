@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/user"
 	"time"
 )
@@ -65,7 +66,7 @@ func (p CreateEventParam) validate(requestUser user.User) error {
 	return nil
 }
 
-func CreateEvent(p CreateEventParam, requestUser user.User) (Event, error) {
+func CreateEvent(db *sqlx.DB, p CreateEventParam, requestUser user.User) (Event, error) {
 	// バリデーション
 	err := p.validate(requestUser)
 	if err != nil {
@@ -79,14 +80,6 @@ func CreateEvent(p CreateEventParam, requestUser user.User) (Event, error) {
 			End:   d.End.UTC(),
 		})
 	}
-
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return Event{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
 
 	// トランザクション開始
 	tx, err := db.BeginTxx(context.Background(), &sql.TxOptions{})

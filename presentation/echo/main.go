@@ -2,14 +2,14 @@ package echo
 
 import (
 	"fmt"
-	"prc_hub_back/domain/model/jwt"
-	"prc_hub_back/domain/model/logger"
-
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"prc_hub_back/domain/model/jwt"
+	"prc_hub_back/domain/model/logger"
 )
 
-func Start(port uint, jwtIssuer string, jwtSecret string, allowOrigins []string) {
+func Start(port uint, jwtIssuer string, jwtSecret string, allowOrigins []string, db *sqlx.DB) {
 	// echoサーバーのインスタンス生成
 	e := echo.New()
 
@@ -51,7 +51,9 @@ func Start(port uint, jwtIssuer string, jwtSecret string, allowOrigins []string)
 	e.Use(middleware.Gzip())
 
 	// handlerの登録
-	var server *Server
+	var server = &Server{
+		db: db,
+	}
 
 	// ↓ スコア測定に直接関係するエンドポイント
 	e.GET("/events", server.GetEvents)

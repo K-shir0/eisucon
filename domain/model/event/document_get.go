@@ -1,18 +1,11 @@
 package event
 
-import "prc_hub_back/domain/model/user"
+import (
+	"github.com/jmoiron/sqlx"
+	"prc_hub_back/domain/model/user"
+)
 
-func GetDocument(id int64, requestUser user.User) (EventDocument, error) {
-	// Get document
-
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return EventDocument{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
-
+func GetDocument(db *sqlx.DB, id int64, requestUser user.User) (EventDocument, error) {
 	// `documents`テーブルから`id`が一致する行を取得し、変数`ed`に代入する
 	var ed EventDocument
 	r, err := db.Query("SELECT * FROM documents WHERE id = ?", id)
@@ -31,7 +24,7 @@ func GetDocument(id int64, requestUser user.User) (EventDocument, error) {
 	}
 
 	// Get event
-	e, err := GetEvent(ed.EventId, GetEventQueryParam{}, requestUser)
+	e, err := GetEvent(db, ed.EventId, GetEventQueryParam{}, requestUser)
 	if err != nil {
 		return EventDocument{}, err
 	}

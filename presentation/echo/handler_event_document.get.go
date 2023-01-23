@@ -11,7 +11,7 @@ import (
 )
 
 // (GET /events/{id}/documents/{document_id})
-func (*Server) GetEventsIdDocumentsDocumentId(ctx echo.Context) error {
+func (s *Server) GetEventsIdDocumentsDocumentId(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.Check(ctx)
 	if err != nil {
@@ -32,7 +32,7 @@ func (*Server) GetEventsIdDocumentsDocumentId(ctx echo.Context) error {
 	}
 
 	// Get document
-	ed, err := event.GetDocument(documentId, jcc.Id)
+	ed, err := event.GetDocument(s.db, documentId, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, event.ErrToCode(err), err.Error())
 	}

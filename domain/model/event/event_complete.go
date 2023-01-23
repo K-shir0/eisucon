@@ -1,8 +1,11 @@
 package event
 
-import "prc_hub_back/domain/model/user"
+import (
+	"github.com/jmoiron/sqlx"
+	"prc_hub_back/domain/model/user"
+)
 
-func CompleteEvent(id int64, requestUser user.User) (Event, error) {
+func CompleteEvent(db *sqlx.DB, id int64, requestUser user.User) (Event, error) {
 	completed := true
-	return UpdateEvent(id, UpdateEventParam{Completed: &completed}, requestUser)
+	return UpdateEvent(db, id, UpdateEventParam{Completed: &completed}, requestUser)
 }

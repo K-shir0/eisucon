@@ -1,6 +1,7 @@
 package event
 
 import (
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/application/user"
 	"prc_hub_back/domain/model/event"
 	userDomain "prc_hub_back/domain/model/user"
@@ -13,17 +14,17 @@ type (
 	GetEventQueryParam     = event.GetEventQueryParam
 )
 
-func CreateEvent(p CreateEventParam, requestUserId int64) (event.Event, error) {
+func CreateEvent(db *sqlx.DB, p CreateEventParam, requestUserId int64) (event.Event, error) {
 	// リクエスト元のユーザーを取得
 	u, err := user.Get(requestUserId)
 	if err != nil {
 		return event.Event{}, err
 	}
 
-	return event.CreateEvent(p, u)
+	return event.CreateEvent(db, p, u)
 }
 
-func GetEvent(id int64, q GetEventQueryParam, requestUserId *int64) (event.EventEmbed, error) {
+func GetEvent(db *sqlx.DB, id int64, q GetEventQueryParam, requestUserId *int64) (event.EventEmbed, error) {
 	u := new(userDomain.User)
 
 	if requestUserId != nil {
@@ -44,10 +45,10 @@ func GetEvent(id int64, q GetEventQueryParam, requestUserId *int64) (event.Event
 		}
 	}
 
-	return event.GetEvent(id, q, *u)
+	return event.GetEvent(db, id, q, *u)
 }
 
-func GetEventList(q GetEventListQueryParam, requestUserId *int64) ([]event.EventEmbed, error) {
+func GetEventList(q GetEventListQueryParam, db *sqlx.DB, requestUserId *int64) ([]event.EventEmbed, error) {
 	u := new(userDomain.User)
 
 	if requestUserId != nil {
@@ -68,25 +69,25 @@ func GetEventList(q GetEventListQueryParam, requestUserId *int64) ([]event.Event
 		}
 	}
 
-	return event.GetEventList(q, *u)
+	return event.GetEventList(db, q, *u)
 }
 
-func UpdateEvent(id int64, p UpdateEventParam, requestUserId int64) (event.Event, error) {
+func UpdateEvent(db *sqlx.DB, id int64, p UpdateEventParam, requestUserId int64) (event.Event, error) {
 	// リクエスト元のユーザーを取得
 	u, err := user.Get(requestUserId)
 	if err != nil {
 		return event.Event{}, err
 	}
 
-	return event.UpdateEvent(id, p, u)
+	return event.UpdateEvent(db, id, p, u)
 }
 
-func DeleteEvent(id int64, requestUserId int64) error {
+func DeleteEvent(db *sqlx.DB, id int64, requestUserId int64) error {
 	// リクエスト元のユーザーを取得
 	u, err := user.Get(requestUserId)
 	if err != nil {
 		return err
 	}
 
-	return event.DeleteEvent(id, u)
+	return event.DeleteEvent(db, id, u)
 }

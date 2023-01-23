@@ -11,7 +11,7 @@ import (
 )
 
 // (GET /events/{id})
-func (*Server) GetEventsId(ctx echo.Context) error {
+func (s *Server) GetEventsId(ctx echo.Context) error {
 	// Get jwt claim
 	var jwtId *int64
 	jcc, err := jwt.Check(ctx)
@@ -33,7 +33,7 @@ func (*Server) GetEventsId(ctx echo.Context) error {
 	query.Embed = &embed
 
 	// Get event
-	e, err := event.GetEvent(id, *query, jwtId)
+	e, err := event.GetEvent(s.db, id, *query, jwtId)
 	if err != nil {
 		return JSONMessage(ctx, event.ErrToCode(err), err.Error())
 	}

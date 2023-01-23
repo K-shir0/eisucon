@@ -11,7 +11,7 @@ import (
 )
 
 // (PATCH /events/{id})
-func (*Server) PatchEventsId(ctx echo.Context) error {
+func (s *Server) PatchEventsId(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.CheckProvided(ctx)
 	if err != nil {
@@ -32,7 +32,7 @@ func (*Server) PatchEventsId(ctx echo.Context) error {
 	}
 
 	// Update event
-	e, err := event.UpdateEvent(id, *body, jcc.Id)
+	e, err := event.UpdateEvent(s.db, id, *body, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, event.ErrToCode(err), err.Error())
 	}

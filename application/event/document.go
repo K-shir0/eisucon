@@ -1,6 +1,7 @@
 package event
 
 import (
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/application/user"
 	"prc_hub_back/domain/model/event"
 )
@@ -11,7 +12,7 @@ type (
 	GetDocumentQueryParam    event.GetDocumentQueryParam
 )
 
-func CreateDocument(p CreateEventDocumentParam, requestUserId int64) (_ event.EventDocument, err error) {
+func CreateDocument(db *sqlx.DB, p CreateEventDocumentParam, requestUserId int64) (_ event.EventDocument, err error) {
 	// リクエスト元のユーザーを取得
 	u, err := user.Get(requestUserId)
 	if err != nil {
@@ -19,6 +20,7 @@ func CreateDocument(p CreateEventDocumentParam, requestUserId int64) (_ event.Ev
 	}
 
 	return event.CreateEventDocument(
+		db,
 		event.CreateEventDocumentParam{
 			EventId: p.EventId,
 			Name:    p.Name,
@@ -28,7 +30,7 @@ func CreateDocument(p CreateEventDocumentParam, requestUserId int64) (_ event.Ev
 	)
 }
 
-func GetDocument(id int64, requestUserId int64) (_ event.EventDocument, err error) {
+func GetDocument(db *sqlx.DB, id int64, requestUserId int64) (_ event.EventDocument, err error) {
 	// リクエスト元のユーザーを取得
 	u, err := user.Get(requestUserId)
 	if err != nil {
@@ -36,13 +38,15 @@ func GetDocument(id int64, requestUserId int64) (_ event.EventDocument, err erro
 	}
 
 	return event.GetDocument(
+		db,
 		id,
 		u,
 	)
 }
 
-func GetDocumentList(q GetDocumentQueryParam, requestUserId int64) ([]event.EventDocument, error) {
+func GetDocumentList(db *sqlx.DB, q GetDocumentQueryParam, requestUserId int64) ([]event.EventDocument, error) {
 	return event.GetDocumentList(
+		db,
 		event.GetDocumentQueryParam{
 			EventId:     q.EventId,
 			Name:        q.Name,
@@ -51,7 +55,7 @@ func GetDocumentList(q GetDocumentQueryParam, requestUserId int64) ([]event.Even
 	)
 }
 
-func UpdateDocument(id int64, p UpdateEventDocumentParam, requestUserId int64) (event.EventDocument, error) {
+func UpdateDocument(db *sqlx.DB, id int64, p UpdateEventDocumentParam, requestUserId int64) (event.EventDocument, error) {
 	// リクエスト元のユーザーを取得
 	u, err := user.Get(requestUserId)
 	if err != nil {
@@ -59,6 +63,7 @@ func UpdateDocument(id int64, p UpdateEventDocumentParam, requestUserId int64) (
 	}
 
 	return event.UpdateEventDocument(
+		db,
 		id,
 		event.UpdateEventDocumentParam{
 			Name: p.Name,
@@ -68,7 +73,7 @@ func UpdateDocument(id int64, p UpdateEventDocumentParam, requestUserId int64) (
 	)
 }
 
-func DeleteDocument(id int64, requestUserId int64) error {
+func DeleteDocument(db *sqlx.DB, id int64, requestUserId int64) error {
 	// リクエスト元のユーザーを取得
 	u, err := user.Get(requestUserId)
 	if err != nil {
@@ -76,6 +81,7 @@ func DeleteDocument(id int64, requestUserId int64) error {
 	}
 
 	return event.DeleteEventDocument(
+		db,
 		id,
 		u,
 	)
