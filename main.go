@@ -123,5 +123,5 @@ func main() {
 }
 
 func InitDB(user string, password string, host string, port uint, db string) (*sqlx.DB, error) {
-	return sqlx.Open("sqlite3", "./prc_hub.db")
+	return sqlx.Open("sqlite3", "file::memory:?cache=shared")
 }
