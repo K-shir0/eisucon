@@ -8,7 +8,7 @@ import (
 )
 
 // (POST /reset)
-func (*Server) PostReset(ctx echo.Context) error {
+func (s *Server) PostReset(ctx echo.Context) error {
 	err := eisucon.Migrate()
 	if err != nil {
 		return JSONMessage(ctx, http.StatusInternalServerError, err.Error())

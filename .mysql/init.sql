@@ -36,8 +36,10 @@ CREATE TABLE `users` (
 CREATE TABLE `user_stars` (
   `id` int(255) UNSIGNED AUTO_INCREMENT NOT NULL,
   `target_user_id` int(255) UNSIGNED NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
 );
+
+CREATE INDEX user_stars_target_user_id_index ON prc_hub.user_stars (target_user_id);
 
 --
 -- Table structure for table `events`

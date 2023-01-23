@@ -7,8 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"prc_hub_back/application/eisucon"
-	"prc_hub_back/application/event"
-	"prc_hub_back/application/user"
 	"prc_hub_back/domain/model/logger"
 	"prc_hub_back/domain/model/logrus"
 	"prc_hub_back/presentation/echo"
@@ -82,8 +80,6 @@ func main() {
 	db.SetConnMaxIdleTime(time.Minute * 2)
 
 	// Init application services
-	user.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
-	event.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
 	eisucon.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB, *eisuconMigrationFile)
 
 	// Migrate seed data
