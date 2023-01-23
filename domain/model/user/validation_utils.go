@@ -1,6 +1,9 @@
 package user
 
-import "errors"
+import (
+	"errors"
+	"github.com/jmoiron/sqlx"
+)
 
 // Errors
 var (
@@ -19,14 +22,14 @@ func validateName(name string) error {
 	return nil
 }
 
-func validateEmail(email string) error {
+func validateEmail(db *sqlx.DB, email string) error {
 	// 空文字チェック
 	if email == "" {
 		return ErrValidateEmailCannotBeEmpty
 	}
 	// 重複チェック
 
-	_, err := GetByEmail(email)
+	_, err := GetByEmail(db, email)
 	if err == nil || err != ErrUserNotFound {
 		return ErrValidateEmailAlreadyUsed
 	}

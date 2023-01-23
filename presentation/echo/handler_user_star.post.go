@@ -10,7 +10,7 @@ import (
 )
 
 // (POST /users/{id}/star)
-func (*Server) PostUsersIdStar(ctx echo.Context) error {
+func (s *Server) PostUsersIdStar(ctx echo.Context) error {
 	// Bind id
 	var id Id
 	err := runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
@@ -18,7 +18,7 @@ func (*Server) PostUsersIdStar(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
 	}
 
-	count, err := user.AddStar(uint64(id))
+	count, err := user.AddStar(s.db, uint64(id))
 	if err != nil {
 		return JSONMessage(ctx, http.StatusInternalServerError, err.Error())
 	}

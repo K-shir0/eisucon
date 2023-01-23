@@ -11,7 +11,7 @@ import (
 )
 
 // (DELETE /users/{id})
-func (*Server) DeleteUsersId(ctx echo.Context) error {
+func (s *Server) DeleteUsersId(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.CheckProvided(ctx)
 	if err != nil {
@@ -26,7 +26,7 @@ func (*Server) DeleteUsersId(ctx echo.Context) error {
 	}
 
 	// Delete user
-	err = user.Delete(id, jcc.Id)
+	err = user.Delete(s.db, id, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, user.ErrToCode(err), err.Error())
 	}

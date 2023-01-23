@@ -9,7 +9,7 @@ import (
 )
 
 // (DELETE /users)
-func (*Server) DeleteUsers(ctx echo.Context) error {
+func (s *Server) DeleteUsers(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.CheckProvided(ctx)
 	if err != nil {
@@ -17,7 +17,7 @@ func (*Server) DeleteUsers(ctx echo.Context) error {
 	}
 
 	// Delete user
-	err = user.Delete(jcc.Id, jcc.Id)
+	err = user.Delete(s.db, jcc.Id, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, user.ErrToCode(err), err.Error())
 	}

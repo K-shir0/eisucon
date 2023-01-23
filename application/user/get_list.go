@@ -1,9 +1,12 @@
 package user
 
-import "prc_hub_back/domain/model/user"
+import (
+	"github.com/jmoiron/sqlx"
+	"prc_hub_back/domain/model/user"
+)
 
 type GetUserListQuery user.GetUserListQueryParam
 
-func GetList(q GetUserListQuery) ([]user.User, error) {
-	return user.GetList(user.GetUserListQueryParam(q))
+func GetList(db *sqlx.DB, q GetUserListQuery) ([]user.User, error) {
+	return user.GetList(db, user.GetUserListQueryParam(q))
 }

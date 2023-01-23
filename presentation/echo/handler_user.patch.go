@@ -11,7 +11,7 @@ import (
 )
 
 // (PATCH /users/{id})
-func (*Server) PatchUsersId(ctx echo.Context) error {
+func (s *Server) PatchUsersId(ctx echo.Context) error {
 	// Get jwt claim
 	jcc, err := jwt.CheckProvided(ctx)
 	if err != nil {
@@ -32,7 +32,7 @@ func (*Server) PatchUsersId(ctx echo.Context) error {
 	}
 
 	// Update user
-	uwt, err := user.Update(id, *body, jcc.Id)
+	uwt, err := user.Update(s.db, id, *body, jcc.Id)
 	if err != nil {
 		return JSONMessage(ctx, user.ErrToCode(err), err.Error())
 	}

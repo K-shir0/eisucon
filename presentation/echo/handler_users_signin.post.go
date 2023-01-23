@@ -19,7 +19,7 @@ func (b LoginBody) Validate() error {
 }
 
 // (POST /users/sign_in)
-func (*Server) PostUsersSignIn(ctx echo.Context) error {
+func (s *Server) PostUsersSignIn(ctx echo.Context) error {
 	// Bind body
 	body := new(PostUsersSignInJSONRequestBody)
 	if err := ctx.Bind(body); err != nil {
@@ -27,7 +27,7 @@ func (*Server) PostUsersSignIn(ctx echo.Context) error {
 	}
 
 	// Verify and generate jwt
-	token, verify, err := user.Verify(string(body.Email), body.Password)
+	token, verify, err := user.Verify(s.db, string(body.Email), body.Password)
 	if err != nil {
 		return JSONMessage(ctx, user.ErrToCode(err), err.Error())
 	}

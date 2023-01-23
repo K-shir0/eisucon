@@ -14,7 +14,7 @@ type (
 
 func CreateDocument(db *sqlx.DB, p CreateEventDocumentParam, requestUserId int64) (_ event.EventDocument, err error) {
 	// リクエスト元のユーザーを取得
-	u, err := user.Get(requestUserId)
+	u, err := user.Get(db, requestUserId)
 	if err != nil {
 		return
 	}
@@ -32,7 +32,7 @@ func CreateDocument(db *sqlx.DB, p CreateEventDocumentParam, requestUserId int64
 
 func GetDocument(db *sqlx.DB, id int64, requestUserId int64) (_ event.EventDocument, err error) {
 	// リクエスト元のユーザーを取得
-	u, err := user.Get(requestUserId)
+	u, err := user.Get(db, requestUserId)
 	if err != nil {
 		return
 	}
@@ -57,7 +57,7 @@ func GetDocumentList(db *sqlx.DB, q GetDocumentQueryParam, requestUserId int64) 
 
 func UpdateDocument(db *sqlx.DB, id int64, p UpdateEventDocumentParam, requestUserId int64) (event.EventDocument, error) {
 	// リクエスト元のユーザーを取得
-	u, err := user.Get(requestUserId)
+	u, err := user.Get(db, requestUserId)
 	if err != nil {
 		return event.EventDocument{}, err
 	}
@@ -75,7 +75,7 @@ func UpdateDocument(db *sqlx.DB, id int64, p UpdateEventDocumentParam, requestUs
 
 func DeleteDocument(db *sqlx.DB, id int64, requestUserId int64) error {
 	// リクエスト元のユーザーを取得
-	u, err := user.Get(requestUserId)
+	u, err := user.Get(db, requestUserId)
 	if err != nil {
 		return err
 	}

@@ -1,13 +1,16 @@
 package user
 
-import "prc_hub_back/domain/model/user"
+import (
+	"github.com/jmoiron/sqlx"
+	"prc_hub_back/domain/model/user"
+)
 
-func Delete(id int64, requestUserId int64) error {
+func Delete(db *sqlx.DB, id int64, requestUserId int64) error {
 	// リクエスト元のユーザーを取得
-	u, err := Get(id)
+	u, err := Get(db, id)
 	if err != nil {
 		return err
 	}
 
-	return user.DeleteUesr(id, u)
+	return user.DeleteUesr(db, id, u)
 }

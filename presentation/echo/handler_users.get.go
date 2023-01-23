@@ -9,7 +9,7 @@ import (
 )
 
 // (GET /users)
-func (*Server) GetUsers(ctx echo.Context) error {
+func (s *Server) GetUsers(ctx echo.Context) error {
 	// Get jwt claim
 	_, err := jwt.CheckProvided(ctx)
 	if err != nil {
@@ -23,7 +23,7 @@ func (*Server) GetUsers(ctx echo.Context) error {
 	}
 
 	// Get users
-	u, err := user.GetList(*query)
+	u, err := user.GetList(s.db, *query)
 	if err != nil {
 		return JSONMessage(ctx, user.ErrToCode(err), err.Error())
 	}

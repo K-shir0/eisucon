@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/jwt"
 	"prc_hub_back/domain/model/util"
 	"strings"
@@ -25,7 +26,7 @@ type UpdateUserParam struct {
 	GithubUsername      util.NullableJSONString `json:"github_username,omitempty"`
 }
 
-func (p UpdateUserParam) validate(id int64, requestUser User) error {
+func (p UpdateUserParam) validate(db *sqlx.DB, id int64, requestUser User) error {
 	// フィールドの検証
 	if p.Name != nil {
 		err := validateName(*p.Name)
@@ -34,7 +35,7 @@ func (p UpdateUserParam) validate(id int64, requestUser User) error {
 		}
 	}
 	if p.Email != nil {
-		err := validateEmail(*p.Email)
+		err := validateEmail(db, *p.Email)
 		if err != nil {
 			return err
 		}
@@ -69,7 +70,7 @@ func (p UpdateUserParam) validate(id int64, requestUser User) error {
 	return nil
 }
 
-func Update(id int64, p UpdateUserParam, requestUser User) (UserWithToken, error) {
+func Update(db *sqlx.DB, id int64, p UpdateUserParam, requestUser User) (UserWithToken, error) {
 	// 権限の検証
 	if requestUser.Id != id && !requestUser.Admin {
 		// Admin権限なし 且つ IDが自分ではない場合は削除不可
@@ -77,25 +78,16 @@ func Update(id int64, p UpdateUserParam, requestUser User) (UserWithToken, error
 	}
 
 	// リポジトリから更新対象の`User`を取得
-	_, err := Get(id)
+	_, err := Get(db, id)
 	if err != nil {
 		return UserWithToken{}, err
 	}
 
 	// バリデーション
-	err = p.validate(id, requestUser)
+	err = p.validate(db, id, requestUser)
 	if err != nil {
 		return UserWithToken{}, err
 	}
-
-	// リポジトリ内の`User`を更新
-	// MySQLサーバーに接続
-	d, err := OpenMysql()
-	if err != nil {
-		return UserWithToken{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer d.Close()
 
 	// クエリを作成
 	query := "UPDATE users SET"
@@ -158,7 +150,7 @@ func Update(id int64, p UpdateUserParam, requestUser User) (UserWithToken, error
 	query = strings.TrimSuffix(query, ",")
 
 	// `users`テーブルの`id`が一致する行を更新
-	r2, err := d.Exec(query+" WHERE id = ?", append(queryParams, id)...)
+	r2, err := db.Exec(query+" WHERE id = ?", append(queryParams, id)...)
 	if err != nil {
 		return UserWithToken{}, err
 	}
@@ -173,7 +165,7 @@ func Update(id int64, p UpdateUserParam, requestUser User) (UserWithToken, error
 	}
 
 	// 更新後のデータを取得
-	u, err := Get(id)
+	u, err := Get(db, id)
 	if err != nil {
 		return UserWithToken{}, err
 	}

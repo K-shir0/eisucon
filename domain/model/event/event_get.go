@@ -86,7 +86,7 @@ func GetEvent(db *sqlx.DB, id int64, q GetEventQueryParam, requestUser user.User
 
 	if embedUser {
 		// `User`を取得
-		u, err := user.Get(event.UserId)
+		u, err := user.Get(db, event.UserId)
 		if err != nil {
 			return EventEmbed{}, err
 		}

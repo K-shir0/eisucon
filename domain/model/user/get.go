@@ -2,21 +2,14 @@ package user
 
 import (
 	"context"
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/sqlc"
 )
 
-func Get(id int64) (User, error) {
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return User{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
-
+func Get(db *sqlx.DB, id int64) (User, error) {
 	queries := sqlc.New(db)
 
-	u, err := queries.GetUser(
+	u, _ := queries.GetUser(
 		context.Background(),
 		sqlc.GetUserParams{SetEmail: "%"},
 	)
@@ -38,18 +31,10 @@ func Get(id int64) (User, error) {
 	return user, nil
 }
 
-func GetByEmail(email string) (User, error) {
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return User{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
-
+func GetByEmail(db *sqlx.DB, email string) (User, error) {
 	queries := sqlc.New(db)
 
-	u, err := queries.GetUser(
+	u, _ := queries.GetUser(
 		context.Background(),
 		sqlc.GetUserParams{SetEmail: email},
 	)

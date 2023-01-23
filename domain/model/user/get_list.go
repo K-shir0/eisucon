@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/jmoiron/sqlx"
 	"strings"
 )
 
@@ -12,15 +13,7 @@ type GetUserListQueryParam struct {
 	Admin               *bool   `json:"admin"`
 }
 
-func GetList(q GetUserListQueryParam) ([]User, error) {
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
-	if err != nil {
-		return nil, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
-
+func GetList(db *sqlx.DB, q GetUserListQueryParam) ([]User, error) {
 	// クエリを作成
 	query := "SELECT u.id, u.name, u.email, u.password, u.post_event_availabled, u.manage, u.admin, u.twitter_id, u.github_username, COUNT(s.target_user_id) AS star_count FROM users u LEFT JOIN user_stars s ON u.id = s.target_user_id  GROUP BY u.id HAVING"
 	queryParams := []interface{}{}

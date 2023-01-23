@@ -1,15 +1,18 @@
 package user
 
-import "errors"
+import (
+	"errors"
+	"github.com/jmoiron/sqlx"
+)
 
 // Errors
 var (
 	ErrAdminUserCannnotDelete = errors.New("cannot delete admin user")
 )
 
-func DeleteUesr(id int64, requestUser User) error {
+func DeleteUesr(db *sqlx.DB, id int64, requestUser User) error {
 	// リポジトリから削除対象の`User`を取得
-	u, err := Get(id)
+	u, err := Get(db, id)
 	if err != nil {
 		return err
 	}
@@ -24,17 +27,8 @@ func DeleteUesr(id int64, requestUser User) error {
 		return ErrAdminUserCannnotDelete
 	}
 
-	// リポジトリから`User`を削除
-	// MySQLサーバーに接続
-	d, err := OpenMysql()
-	if err != nil {
-		return err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer d.Close()
-
 	// `id`が一致する行を`users`テーブルから削除
-	r2, err := d.Exec(
+	r2, err := db.Exec(
 		`DELETE FROM users WHERE id = ?`,
 		id,
 	)

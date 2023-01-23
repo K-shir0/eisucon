@@ -11,7 +11,7 @@ import (
 )
 
 // (GET /users/{id})
-func (*Server) GetUsersId(ctx echo.Context) error {
+func (s *Server) GetUsersId(ctx echo.Context) error {
 	// Get jwt claim
 	_, err := jwt.CheckProvided(ctx)
 	// jcc, err := jwt.CheckProvided(ctx)
@@ -27,7 +27,7 @@ func (*Server) GetUsersId(ctx echo.Context) error {
 	}
 
 	// Get user
-	u, err := user.Get(id)
+	u, err := user.Get(s.db, id)
 	if err != nil {
 		return JSONMessage(ctx, user.ErrToCode(err), err.Error())
 	}

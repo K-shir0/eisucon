@@ -8,7 +8,7 @@ import (
 )
 
 // (POST /users)
-func (*Server) PostUsers(ctx echo.Context) error {
+func (s *Server) PostUsers(ctx echo.Context) error {
 	// Bind body
 	body := new(user.CreateUserParam)
 	if err := ctx.Bind(body); err != nil {
@@ -16,7 +16,7 @@ func (*Server) PostUsers(ctx echo.Context) error {
 	}
 
 	// Create user
-	uwt, err := user.Create(*body)
+	uwt, err := user.Create(s.db, *body)
 	if err != nil {
 		return JSONMessage(ctx, user.ErrToCode(err), err.Error())
 	}

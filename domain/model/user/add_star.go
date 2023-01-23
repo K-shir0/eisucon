@@ -1,18 +1,12 @@
 package user
 
-func AddStar(userId uint64) (count uint64, err error) {
-	_, err = Get(int64(userId))
-	if err != nil {
-		return 0, err
-	}
+import "github.com/jmoiron/sqlx"
 
-	// MySQLサーバーに接続
-	db, err := OpenMysql()
+func AddStar(db *sqlx.DB, userId uint64) (count uint64, err error) {
+	_, err = Get(db, int64(userId))
 	if err != nil {
 		return 0, err
 	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer db.Close()
 
 	// `user_stars`テーブルに追加
 	_, err = db.Exec("INSERT INTO user_stars (target_user_id) VALUES (?)", userId)

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/jwt"
 
 	"golang.org/x/crypto/bcrypt"
@@ -14,12 +15,12 @@ type CreateUserParam struct {
 	GithubUsername *string `json:"github_username,omitempty"`
 }
 
-func (p CreateUserParam) validate() error {
+func (p CreateUserParam) validate(db *sqlx.DB) error {
 	err := validateName(p.Name)
 	if err != nil {
 		return err
 	}
-	err = validateEmail(p.Email)
+	err = validateEmail(db, p.Email)
 	if err != nil {
 		return err
 	}
@@ -30,9 +31,9 @@ func (p CreateUserParam) validate() error {
 	return nil
 }
 
-func CreateUser(p CreateUserParam) (UserWithToken, error) {
+func CreateUser(db *sqlx.DB, p CreateUserParam) (UserWithToken, error) {
 	// バリデーション
-	err := p.validate()
+	err := p.validate(db)
 	if err != nil {
 		return UserWithToken{}, err
 	}
@@ -51,17 +52,8 @@ func CreateUser(p CreateUserParam) (UserWithToken, error) {
 		p.GithubUsername = nil
 	}
 
-	// リポジトリに追加
-	// MySQLサーバーに接続
-	d, err := OpenMysql()
-	if err != nil {
-		return UserWithToken{}, err
-	}
-	// return時にMySQLサーバーとの接続を閉じる
-	defer d.Close()
-
 	// `users`テーブルに追加
-	r, err := d.Exec(
+	r, err := db.Exec(
 		`INSERT INTO users (name, email, password, post_event_availabled, manage, admin, twitter_id, github_username) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 		p.Name, p.Email, string(hashed), false, false, false, p.TwitterId, p.GithubUsername,
 	)

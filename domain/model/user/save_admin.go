@@ -1,13 +1,14 @@
 package user
 
 import (
+	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SaveAdmin(email string, password string) error {
+func SaveAdmin(db *sqlx.DB, email string, password string) error {
 	tmpBool := true
 	tmpName := "admin"
-	u, err := GetList(GetUserListQueryParam{Admin: &tmpBool, Name: &tmpName})
+	u, err := GetList(db, GetUserListQueryParam{Admin: &tmpBool, Name: &tmpName})
 	if err != nil {
 		return err
 	}
@@ -29,7 +30,7 @@ func SaveAdmin(email string, password string) error {
 		}
 
 		// `User`更新
-		_, err := Update(u[0].Id, UpdateUserParam{
+		_, err := Update(db, u[0].Id, UpdateUserParam{
 			Email:    newEmail,
 			Password: newPassword,
 		}, u[0])
@@ -45,17 +46,8 @@ func SaveAdmin(email string, password string) error {
 			return err
 		}
 
-		// リポジトリに追加
-		// MySQLサーバーに接続
-		d, err := OpenMysql()
-		if err != nil {
-			return err
-		}
-		// return時にMySQLサーバーとの接続を閉じる
-		defer d.Close()
-
 		// `users`テーブルに追加
-		_, err = d.Exec(
+		_, err = db.Exec(
 			`INSERT INTO users (name, email, password, post_event_availabled, manage, admin, twitter_id, github_username) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			"admin", email, string(hashed), true, true, true, nil, nil,
 		)

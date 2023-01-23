@@ -16,7 +16,7 @@ type (
 
 func CreateEvent(db *sqlx.DB, p CreateEventParam, requestUserId int64) (event.Event, error) {
 	// リクエスト元のユーザーを取得
-	u, err := user.Get(requestUserId)
+	u, err := user.Get(db, requestUserId)
 	if err != nil {
 		return event.Event{}, err
 	}
@@ -30,7 +30,7 @@ func GetEvent(db *sqlx.DB, id int64, q GetEventQueryParam, requestUserId *int64)
 	if requestUserId != nil {
 		// リクエスト元のユーザーを取得
 		var u2 userDomain.User
-		u2, err := user.Get(*requestUserId)
+		u2, err := user.Get(db, *requestUserId)
 		if err != nil {
 			return event.EventEmbed{}, err
 		}
@@ -54,7 +54,7 @@ func GetEventList(q GetEventListQueryParam, db *sqlx.DB, requestUserId *int64) (
 	if requestUserId != nil {
 		// リクエスト元のユーザーを取得
 		var u2 userDomain.User
-		u2, err := user.Get(*requestUserId)
+		u2, err := user.Get(db, *requestUserId)
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +74,7 @@ func GetEventList(q GetEventListQueryParam, db *sqlx.DB, requestUserId *int64) (
 
 func UpdateEvent(db *sqlx.DB, id int64, p UpdateEventParam, requestUserId int64) (event.Event, error) {
 	// リクエスト元のユーザーを取得
-	u, err := user.Get(requestUserId)
+	u, err := user.Get(db, requestUserId)
 	if err != nil {
 		return event.Event{}, err
 	}
@@ -84,7 +84,7 @@ func UpdateEvent(db *sqlx.DB, id int64, p UpdateEventParam, requestUserId int64)
 
 func DeleteEvent(db *sqlx.DB, id int64, requestUserId int64) error {
 	// リクエスト元のユーザーを取得
-	u, err := user.Get(requestUserId)
+	u, err := user.Get(db, requestUserId)
 	if err != nil {
 		return err
 	}

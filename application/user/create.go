@@ -1,13 +1,17 @@
 package user
 
-import "prc_hub_back/domain/model/user"
+import (
+	"github.com/jmoiron/sqlx"
+	"prc_hub_back/domain/model/user"
+)
 
 type (
 	CreateUserParam user.CreateUserParam
 )
 
-func Create(p CreateUserParam) (user.UserWithToken, error) {
+func Create(db *sqlx.DB, p CreateUserParam) (user.UserWithToken, error) {
 	return user.CreateUser(
+		db,
 		user.CreateUserParam{
 			Name:           p.Name,
 			Email:          p.Email,
