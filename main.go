@@ -94,11 +94,11 @@ func main() {
 		return
 	}
 
-	//_, err = db.ExecContext(context.Background(), migrate)
-	//if err != nil {
-	//	fmt.Printf("err: %v\n", err)
-	//	return
-	//}
+	_, err = db.ExecContext(context.Background(), migrate)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		return
+	}
 
 	// Init application services
 	eisucon.Init(db, migrate)
