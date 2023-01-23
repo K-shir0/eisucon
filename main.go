@@ -75,6 +75,12 @@ func main() {
 		return
 	}
 
+	maxConnsInt := 25
+	db.SetMaxOpenConns(maxConnsInt)
+	db.SetMaxIdleConns(maxConnsInt * 2)
+	//db.SetConnMaxLifetime(time.Minute * 2)
+	db.SetConnMaxIdleTime(time.Minute * 2)
+
 	// Init application services
 	user.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
 	event.Init(*mysqlUser, *mysqlPassword, *mysqlHost, *mysqlPort, *mysqlDB)
