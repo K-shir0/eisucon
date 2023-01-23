@@ -148,8 +148,6 @@ func ConvEventListByWithUserAndDocuments(queries *sqlc.Queries, eventName string
 			// Event の処理
 			uniqDocuments := lo.Uniq[EventDocument](documents)
 			event.Documents = &uniqDocuments
-			// User の処理
-			event.User = nil
 
 			events = append(events, *event)
 			event = nil
