@@ -2,22 +2,20 @@ package eisucon
 
 import (
 	"errors"
-	"github.com/jmoiron/sqlx"
 	"prc_hub_back/domain/model/eisucon"
 )
 
 // Singleton field
-var db *sqlx.DB
-var migrate string
+var migrateSqlFile string
 
-func Init(db2 *sqlx.DB, migratedata string) {
-	db = db2
-	migrate = migratedata
+func Init(user string, password string, host string, port uint, db string, migrateSqlFilePath string) {
+	eisucon.Init(user, password, host, port, db)
+	migrateSqlFile = migrateSqlFilePath
 }
 
 func Migrate() error {
-	if migrate == "" {
+	if migrateSqlFile == "" {
 		return errors.New("migrate sql file does not set")
 	}
-	return eisucon.Migrate(db, migrate)
+	return eisucon.Migrate(migrateSqlFile)
 }
