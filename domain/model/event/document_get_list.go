@@ -44,17 +44,12 @@ func GetDocumentList(db *sqlx.DB, q GetDocumentQueryParam) ([]EventDocument, err
 	// 1行ずつ読込
 	for r.Next() {
 		// カラム読み込み用変数
-		var (
-			id      int64
-			eventId int64
-			name    string
-			url     string
-		)
-		err = r.Scan(&id, &eventId, &name, &url)
+		var ed EventDocument
+		err = r.Scan(&ed.Id, &ed.EventId, &ed.Name, &ed.Url)
 		if err != nil {
 			return nil, err
 		}
-		documents = append(documents, EventDocument{id, eventId, name, url})
+		documents = append(documents, ed)
 	}
 
 	return documents, nil
