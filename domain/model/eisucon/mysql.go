@@ -19,5 +19,5 @@ func OpenMysql() (*sqlx.DB, error) {
 	//if dsn == "" {
 	//	return nil, errors.New("dsn does not set")
 	//}
-	return sqlx.Open("sqlite3", "./prc_hub.db")
+	return sqlx.Open("sqlite3", "file::memory:?cache=shared")
 }
