@@ -1,11 +1,9 @@
 package event
 
 import (
-	"context"
 	"github.com/jmoiron/sqlx"
-	"github.com/samber/lo"
-	"prc_hub_back/domain/model/sqlc"
 	"prc_hub_back/domain/model/user"
+	"time"
 )
 
 type GetEventQueryParam struct {
@@ -26,262 +24,83 @@ func GetEvent(db *sqlx.DB, id int64, q GetEventQueryParam, requestUser user.User
 		}
 	}
 
-	if embedUser && embedDocuments {
-		event, err := ConvEventByWithUserAndDocuments(sqlc.New(db), id)
-		if err != nil {
-			return EventEmbed{}, err
-		}
-
-		return *event, nil
+	// `Event`を取得
+	r1, err := db.Query("SELECT * FROM events WHERE id = ?", id)
+	if err != nil {
+		return EventEmbed{}, err
 	}
-
-	if embedUser {
-		event, err := ConvEventByWithUser(sqlc.New(db), id)
-		if err != nil {
-			return EventEmbed{}, err
-		}
-
-		return *event, nil
+	defer r1.Close()
+	if !r1.Next() {
+		// 1行もレコードが無い場合
+		// not found
+		return EventEmbed{}, ErrEventNotFound
 	}
-
-	if embedDocuments {
-		event, err := ConvEventByWithDocuments(sqlc.New(db), id)
-		if err != nil {
-			return EventEmbed{}, err
-		}
-
-		return *event, nil
-	}
-
-	event, err := ConvEvent(sqlc.New(db), id)
+	// 一時変数に割当
+	var (
+		id2         int64
+		name        string
+		description *string
+		location    *string
+		published   bool
+		completed   bool
+		userId      int64
+	)
+	err = r1.Scan(&id2, &name, &description, &location, &published, &completed, &userId)
 	if err != nil {
 		return EventEmbed{}, err
 	}
 
-	return *event, nil
-}
+	// 返り値用変数
+	event := EventEmbed{
+		Event: Event{
+			Id:          id,
+			Name:        name,
+			Description: description,
+			Location:    location,
+			Datetimes:   []EventDatetime{},
+			Published:   published,
+			Completed:   completed,
+			UserId:      userId,
+		},
+	}
 
-// ConvEventByWithUserAndDocuments は、Event と User と Document を取得する
-func ConvEventByWithUserAndDocuments(queries *sqlc.Queries, event_id int64) (*EventEmbed, error) {
-	eventsRows, err := queries.GetEventWithUserAndDocuments(context.Background(), int32(event_id))
+	// `EventDatetime`を取得
+	r2, err := db.Query("SELECT * FROM event_datetimes WHERE event_id = ?", id)
 	if err != nil {
-		return nil, err
+		return EventEmbed{}, err
 	}
-	if len(eventsRows) == 0 {
-		return nil, nil
-	}
-
-	var event *EventEmbed
-	var documents []EventDocument
-
-	for _, row := range eventsRows {
-		if event == nil {
-			event = &EventEmbed{
-				Event: Event{
-					Id:          int64(row.ID),
-					Name:        row.Name,
-					Description: &row.Description.String,
-					Location:    &row.Location.String,
-					Datetimes:   []EventDatetime{},
-					Published:   row.Published,
-					Completed:   row.Completed,
-					UserId:      int64(row.UserID),
-				},
-				User: &user.User{
-					Id:                  int64(row.UserID),
-					Name:                row.Name_2,
-					Email:               row.Email,
-					Password:            row.Password,
-					PostEventAvailabled: row.PostEventAvailabled,
-					Manage:              row.Manage,
-					Admin:               row.Admin,
-					TwitterId:           &row.TwitterID.String,
-					GithubUsername:      &row.GithubUsername.String,
-					StarCount:           uint64(row.StarCount),
-				},
-			}
+	defer r2.Close()
+	for r2.Next() {
+		var (
+			eId   string
+			start *time.Time
+			end   *time.Time
+		)
+		err = r2.Scan(&eId, &start, &end)
+		if err != nil {
+			return EventEmbed{}, err
 		}
+		// 配列に追加
+		event.Event.Datetimes = append(event.Event.Datetimes, EventDatetime{*start, *end})
+	}
 
-		// Time
-		eventDatetime := &EventDatetime{
-			Start: row.Start,
-			End:   row.End,
+	if embedUser {
+		// `User`を取得
+		u, err := user.Get(db, event.UserId)
+		if err != nil {
+			return EventEmbed{}, err
 		}
+		// 変数に追加
+		event.User = &u
+	}
 
-		// Document
-		eventDocuments := &EventDocument{
-			EventId: int64(row.DocumentEventID),
-			Id:      int64(row.DocumentID),
-			Name:    row.DocumentName,
-			Url:     row.Url,
+	if embedDocuments {
+		// `Documents`を取得
+		ed, err := GetDocumentList(db, GetDocumentQueryParam{EventId: &id})
+		if err != nil {
+			return EventEmbed{}, err
 		}
-
-		// Time の処理
-		event.Event.Datetimes = append(event.Event.Datetimes, *eventDatetime)
-		documents = append(documents, *eventDocuments)
-	}
-
-	// 上と重複
-	// Time の処理
-	if event != nil {
-		event.Event.Datetimes = lo.Uniq[EventDatetime](event.Event.Datetimes)
-		// Event の処理
-		uniqDocuments := lo.Uniq[EventDocument](documents)
-		event.Documents = &uniqDocuments
-	}
-
-	return event, nil
-}
-
-// ConvEventByWithUser は、Event と User を取得する
-func ConvEventByWithUser(queries *sqlc.Queries, event_id int64) (*EventEmbed, error) {
-	eventsRows, err := queries.GetEventWithDocuments(context.Background(), int32(event_id))
-	if err != nil {
-		return nil, err
-	}
-	if len(eventsRows) == 0 {
-		return nil, nil
-	}
-
-	var event *EventEmbed
-
-	for _, row := range eventsRows {
-		if event == nil {
-			event = &EventEmbed{
-				Event: Event{
-					Id:          int64(row.ID),
-					Name:        row.Name,
-					Description: &row.Description.String,
-					Location:    &row.Location.String,
-					Datetimes:   []EventDatetime{},
-					Published:   row.Published,
-					Completed:   row.Completed,
-					UserId:      int64(row.UserID),
-				},
-			}
-		}
-
-		// Time
-		eventDatetime := &EventDatetime{
-			Start: row.Start,
-			End:   row.End,
-		}
-
-		// Time の処理
-		event.Event.Datetimes = append(event.Event.Datetimes, *eventDatetime)
-	}
-
-	// 上と重複
-	// Time の処理
-	if event != nil {
-		event.Event.Datetimes = lo.Uniq[EventDatetime](event.Event.Datetimes)
-	}
-
-	return event, nil
-}
-
-// ConvEventByWithDocuments は、Event と Document を取得する
-func ConvEventByWithDocuments(queries *sqlc.Queries, event_id int64) (*EventEmbed, error) {
-	eventsRows, err := queries.GetEventWithDocuments(context.Background(), int32(event_id))
-	if err != nil {
-		return nil, err
-	}
-	if len(eventsRows) == 0 {
-		return nil, nil
-	}
-
-	var event *EventEmbed
-	var documents []EventDocument
-
-	for _, row := range eventsRows {
-		if event == nil {
-			event = &EventEmbed{
-				Event: Event{
-					Id:          int64(row.ID),
-					Name:        row.Name,
-					Description: &row.Description.String,
-					Location:    &row.Location.String,
-					Datetimes:   []EventDatetime{},
-					Published:   row.Published,
-					Completed:   row.Completed,
-					UserId:      int64(row.UserID),
-				},
-			}
-		}
-
-		// Time
-		eventDatetime := &EventDatetime{
-			Start: row.Start,
-			End:   row.End,
-		}
-
-		// Document
-		eventDocuments := &EventDocument{
-			EventId: int64(row.DocumentEventID),
-			Id:      int64(row.DocumentID),
-			Name:    row.DocumentName,
-			Url:     row.Url,
-		}
-
-		// Time の処理
-		event.Event.Datetimes = append(event.Event.Datetimes, *eventDatetime)
-		documents = append(documents, *eventDocuments)
-	}
-
-	// 上と重複
-	// Time の処理
-	if event != nil {
-		event.Event.Datetimes = lo.Uniq[EventDatetime](event.Event.Datetimes)
-		// Event の処理
-		uniqDocuments := lo.Uniq[EventDocument](documents)
-		event.Documents = &uniqDocuments
-	}
-
-	return event, nil
-}
-
-// ConvEvent は、Event と User と Document を取得する
-func ConvEvent(queries *sqlc.Queries, event_id int64) (*EventEmbed, error) {
-	eventsRows, err := queries.GetEvent(context.Background(), int32(event_id))
-	if err != nil {
-		return nil, err
-	}
-	if len(eventsRows) == 0 {
-		return nil, nil
-	}
-
-	var event *EventEmbed
-
-	for _, row := range eventsRows {
-		if event == nil {
-			event = &EventEmbed{
-				Event: Event{
-					Id:          int64(row.ID),
-					Name:        row.Name,
-					Description: &row.Description.String,
-					Location:    &row.Location.String,
-					Datetimes:   []EventDatetime{},
-					Published:   row.Published,
-					Completed:   row.Completed,
-					UserId:      int64(row.UserID),
-				},
-			}
-		}
-
-		// Time
-		eventDatetime := &EventDatetime{
-			Start: row.Start,
-			End:   row.End,
-		}
-
-		// Time の処理
-		event.Event.Datetimes = append(event.Event.Datetimes, *eventDatetime)
-	}
-
-	// 上と重複
-	// Time の処理
-	if event != nil {
-		event.Event.Datetimes = lo.Uniq[EventDatetime](event.Event.Datetimes)
+		event.Documents = &ed
 	}
 
 	return event, nil
