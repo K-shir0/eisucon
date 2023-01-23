@@ -58,43 +58,17 @@ func GetList(db *sqlx.DB, q GetUserListQueryParam) ([]User, error) {
 	// 配列`users`に代入する
 	var users []User
 	for r.Next() {
-		// 一時変数に割り当て
-		var (
-			id                  int64
-			name                string
-			email               string
-			password            string
-			postEventAvailabled bool
-			manage              bool
-			admin               bool
-			twitterId           *string
-			githubUsername      *string
-			count               uint64
-		)
+		var u User
 		err = r.Scan(
-			&id, &name, &email, &password, &postEventAvailabled,
-			&manage, &admin, &twitterId, &githubUsername, &count,
+			&u.Id, &u.Name, &u.Email, &u.Password, &u.PostEventAvailabled,
+			&u.Manage, &u.Admin, &u.TwitterId, &u.GithubUsername, &u.StarCount,
 		)
 		if err != nil {
 			return nil, err
 		}
 
 		// 配列に追加
-		users = append(
-			users,
-			User{
-				Id:                  id,
-				Name:                name,
-				Email:               email,
-				Password:            password,
-				StarCount:           count,
-				PostEventAvailabled: postEventAvailabled,
-				Manage:              manage,
-				Admin:               admin,
-				TwitterId:           twitterId,
-				GithubUsername:      githubUsername,
-			},
-		)
+		users = append(users, u)
 	}
 
 	return users, nil
