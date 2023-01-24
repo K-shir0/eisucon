@@ -422,6 +422,31 @@ func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (GetUserRow, e
 	return i, err
 }
 
+const getUserByVerify = `-- name: GetUserByVerify :one
+SELECT u.id, u.email, u.password, u.admin
+FROM users u
+WHERE u.email LIKE ?
+`
+
+type GetUserByVerifyRow struct {
+	ID       int32
+	Email    string
+	Password string
+	Admin    bool
+}
+
+func (q *Queries) GetUserByVerify(ctx context.Context, setEmail string) (GetUserByVerifyRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByVerify, setEmail)
+	var i GetUserByVerifyRow
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.Password,
+		&i.Admin,
+	)
+	return i, err
+}
+
 const listEvents = `-- name: ListEvents :many
 SELECT events.id,
        events.name,

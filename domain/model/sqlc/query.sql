@@ -18,6 +18,11 @@ WHERE u.email LIKE CASE
     END
 GROUP BY u.id;
 
+-- name: GetUserByVerify :one
+SELECT u.id, u.email, u.password, u.admin
+FROM users u
+WHERE u.email LIKE sqlc.arg(set_email);
+
 -- name: GetEventWithUserAndDocuments :many
 SELECT events.id,
        events.name,
